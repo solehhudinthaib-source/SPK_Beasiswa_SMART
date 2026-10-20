@@ -256,6 +256,13 @@
 </div>
 
 <script>
+    // Buka tab tertentu lewat URL, mis. ?tab=utilityTab
+    document.addEventListener("DOMContentLoaded", function() {
+        const tab = new URLSearchParams(location.search).get('tab');
+        const btn = tab && document.querySelector(`[data-bs-target="#${tab}"]`);
+        if (btn) bootstrap.Tab.getOrCreateInstance(btn).show();
+    });
+
     MathJax = {
         tex: {
             inlineMath: [['$', '$'], ['\\(', '\\)']],

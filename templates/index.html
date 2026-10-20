@@ -58,4 +58,9 @@
         </form>
     </div>
 </div>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        if (location.hash === '#baru') new bootstrap.Modal('#newProjectModal').show();
+    });
+</script>
 {% endblock %}

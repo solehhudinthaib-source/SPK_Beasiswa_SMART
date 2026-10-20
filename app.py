@@ -11,8 +11,9 @@ from core.models import init_db, Project, SessionLocal
 from core.engine import SMARTEngine, SMARTInput
 
 # Identitas pembuat (tampil di footer). Silakan sesuaikan.
-NAMA_MAHASISWA = "Nama Mahasiswa"
-NIM_MAHASISWA = "NIM"
+NAMA_MAHASISWA = "Solehudin Thaib"
+NIM_MAHASISWA = "231011450099"
+KELAS_MAHASISWA = "06TPLE003"
 
 app = Flask(__name__)
 app.secret_key = "smart_unpam_secret"
@@ -21,7 +22,8 @@ engine = SMARTEngine()
 
 @app.context_processor
 def inject_identity():
-    return {"nama_mahasiswa": NAMA_MAHASISWA, "nim_mahasiswa": NIM_MAHASISWA}
+    return {"nama_mahasiswa": NAMA_MAHASISWA, "nim_mahasiswa": NIM_MAHASISWA,
+            "kelas_mahasiswa": KELAS_MAHASISWA}
 
 def build_input(p_data):
     return SMARTInput(
