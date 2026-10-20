@@ -162,16 +162,21 @@ def calculate_project(id):
         target_idx = 0
     w_vals, scores_history = engine.run_oat_sensitivity(inp, target_idx)
 
-    plt.figure(figsize=(8, 4.5))
+    fig, ax = plt.subplots(figsize=(8, 4.5))
+    colors = plt.cm.tab20(np.linspace(0, 1, max(len(p_data['alternatives']), 2)))
+    best_idx = results['ranking_indices'][0]
     for i, name in enumerate(p_data['alternatives']):
         alt_scores = [step[i] for step in scores_history]
-        plt.plot(w_vals, alt_scores, marker='o', markersize=3, linestyle='-', label=name)
+        lw = 2.6 if i == best_idx else 1.3
+        ax.plot(w_vals, alt_scores, linestyle='-', linewidth=lw, color=colors[i], label=name)
     base_w = results['normalized_weights'][target_idx]
-    plt.axvline(base_w, color='grey', linestyle='--', linewidth=1)
-    plt.xlabel(f"Perubahan Bobot Kriteria: {p_data['criteria'][target_idx]} (garis putus = bobot awal {base_w:.2f})")
-    plt.ylabel("Skor Akhir SMART V(a_i)")
-    plt.legend(fontsize=7, loc='center left', bbox_to_anchor=(1.0, 0.5))
-    plt.grid(True, alpha=0.3)
+    ax.axvline(base_w, color='#0f766e', linestyle='--', linewidth=1.2)
+    ax.set_xlabel(f"Bobot kriteria {p_data['criteria'][target_idx]} (garis putus = bobot awal {base_w:.2f})", fontsize=9)
+    ax.set_ylabel("Skor SMART V(a_i)", fontsize=9)
+    for side in ('top', 'right'):
+        ax.spines[side].set_visible(False)
+    ax.grid(True, axis='y', alpha=0.25)
+    ax.legend(fontsize=7, loc='center left', bbox_to_anchor=(1.0, 0.5), frameon=False)
 
     img_buf = io.BytesIO()
     plt.savefig(img_buf, format='png', bbox_inches='tight')

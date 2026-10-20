@@ -1,133 +1,120 @@
 {% extends 'base.html' %}
+{% set active_page = 'data' %}
+{% block page_title %}Input Data Kasus{% endblock %}
+{% block crumb %}Dashboard / {{ project.name }} / Input Data{% endblock %}
+{% block page_actions %}
+<a href="/project/{{ project.id }}/calculate" class="btn btn-accent"><i class="fa-solid fa-calculator me-1"></i> Hitung Hasil SMART</a>
+{% endblock %}
+
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <a href="/" class="btn btn-sm btn-link text-decoration-none text-muted mb-2"><i class="fa-solid fa-chevron-left me-1"></i> Kembali ke Dashboard</a>
-        <h3><i class="fa-solid fa-sliders text-success me-2"></i>Konfigurasi Matriks: {{ project.name }}</h3>
-    </div>
-    <div>
-        <a href="/project/{{ project.id }}/calculate" class="btn btn-lg btn-success shadow-sm"><i class="fa-solid fa-calculator me-1"></i> Hitung Hasil SMART</a>
-    </div>
-</div>
-
-<div class="row">
-    <div class="col-12 mb-4">
-        <div class="card p-3 bg-white border-0 shadow-sm">
-            <div class="row align-items-center">
-                <div class="col-md-7">
-                    <form action="/project/{{ project.id }}/upload" method="POST" enctype="multipart/form-data" class="d-flex gap-2">
-                        <input type="file" name="file" class="form-control" accept=".csv, .xlsx" required>
-                        <button type="submit" class="btn btn-info text-white text-nowrap"><i class="fa-solid fa-file-import me-1"></i> Impor CSV/Excel</button>
-                    </form>
-                </div>
-                <div class="col-md-5 text-md-end mt-3 mt-md-0">
-                    <a href="/project/{{ project.id }}/export" class="btn btn-outline-secondary"><i class="fa-solid fa-file-export me-1"></i> Ekspor Template (.xlsx)</a>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <form action="/project/{{ project.id }}/update" method="POST" class="col-12">
-        <div class="card p-4 mb-4 border-0 shadow-sm">
-            
-            <div class="row mb-4">
-                <div class="col-md-4 mb-3 mb-md-0">
-                    <label class="form-label fw-bold text-dark"><i class="fa-solid fa-scale-balanced me-1"></i> Skenario Metode Pembobotan</label>
-                    <select name="weight_method" id="weightMethodSelect" class="form-select bg-light border-primary text-dark fw-medium shadow-sm" onchange="handleWeightMethodChange()">
-                        <option value="direct" {% if data.get('weight_method', 'direct') == 'direct' %}selected{% endif %}>Direct Rating (Skala Bebas)</option>
-                        <option value="swing" {% if data.get('weight_method', 'direct') == 'swing' %}selected{% endif %}>Swing Weighting (Skala Rentang)</option>
-                        <option value="roc" {% if data.get('weight_method', 'direct') == 'roc' %}selected{% endif %}>Rank Order Centroid (ROC - Peringkat)</option>
-                        <option value="equal" {% if data.get('weight_method', 'direct') == 'equal' %}selected{% endif %}>Equal Weight (Bobot Merata)</option>
-                    </select>
-                </div>
-                <div class="col-md-4 mb-3 mb-md-0">
-                    <label class="form-label fw-bold text-dark"><i class="fa-solid fa-ruler-horizontal me-1"></i> Rentang Nilai Utilitas (min-max)</label>
-                    <select name="utility_mode" id="utilityModeSelect" class="form-select bg-light border-primary text-dark fw-medium shadow-sm" onchange="handleUtilityModeChange()">
-                        <option value="data" {% if data.get('utility_mode', 'data') == 'data' %}selected{% endif %}>Dari Data (min-max tiap kolom)</option>
-                        <option value="scale" {% if data.get('utility_mode', 'data') == 'scale' %}selected{% endif %}>Skala Tetap Sub-Kriteria</option>
-                    </select>
-                </div>
-                <div class="col-md-4" id="scaleInputs">
-                    <label class="form-label fw-bold text-dark">Skala Min &amp; Max</label>
-                    <div class="input-group">
-                        <span class="input-group-text">Min</span>
-                        <input type="number" name="scale_min" value="{{ data.get('scale_min', 0) }}" step="any" class="form-control text-center">
-                        <span class="input-group-text">Max</span>
-                        <input type="number" name="scale_max" value="{{ data.get('scale_max', 100) }}" step="any" class="form-control text-center">
+<form action="/project/{{ project.id }}/update" method="POST" id="matrixForm">
+<div class="row g-3 mb-3">
+    <div class="col-xl-8">
+        <div class="panel h-100">
+            <div class="panel-head"><h2><i class="fa-solid fa-gears me-2 text-primary"></i>Pengaturan Metode</h2></div>
+            <div class="panel-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold small text-uppercase text-muted">Metode Pembobotan</label>
+                        <select name="weight_method" id="weightMethodSelect" class="form-select" onchange="handleWeightMethodChange()">
+                            <option value="direct" {% if data.get('weight_method', 'direct') == 'direct' %}selected{% endif %}>Direct Rating (Skala Bebas)</option>
+                            <option value="swing" {% if data.get('weight_method', 'direct') == 'swing' %}selected{% endif %}>Swing Weighting (Skala Rentang)</option>
+                            <option value="roc" {% if data.get('weight_method', 'direct') == 'roc' %}selected{% endif %}>Rank Order Centroid (ROC - Peringkat)</option>
+                            <option value="equal" {% if data.get('weight_method', 'direct') == 'equal' %}selected{% endif %}>Equal Weight (Bobot Merata)</option>
+                        </select>
                     </div>
-                    <div class="form-text">Contoh jurnal: sub-kriteria bernilai 20-100.</div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold small text-uppercase text-muted">Rentang Nilai Utilitas</label>
+                        <select name="utility_mode" id="utilityModeSelect" class="form-select" onchange="handleUtilityModeChange()">
+                            <option value="data" {% if data.get('utility_mode', 'data') == 'data' %}selected{% endif %}>Dari Data (min-max tiap kolom)</option>
+                            <option value="scale" {% if data.get('utility_mode', 'data') == 'scale' %}selected{% endif %}>Skala Tetap (min-max ditentukan)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6" id="scaleInputs">
+                        <label class="form-label fw-semibold small text-uppercase text-muted">Batas Skala</label>
+                        <div class="input-group">
+                            <span class="input-group-text">Min</span>
+                            <input type="number" name="scale_min" value="{{ data.get('scale_min', 0) }}" step="any" class="form-control text-center">
+                            <span class="input-group-text">Max</span>
+                            <input type="number" name="scale_max" value="{{ data.get('scale_max', 100) }}" step="any" class="form-control text-center">
+                        </div>
+                    </div>
                 </div>
-            </div>
-
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5 class="text-dark fw-bold m-0"><i class="fa-solid fa-table me-2"></i>Matriks Kriteria & Performa</h5>
-                <div>
-                    <button type="button" class="btn btn-sm btn-outline-primary me-2" onclick="addCriterion()">
-                        <i class="fa-solid fa-plus"></i> Tambah Kriteria
-                    </button>
-                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="addAlternative()">
-                        <i class="fa-solid fa-plus"></i> Tambah Alternatif
-                    </button>
-                </div>
-            </div>
-            
-            <div class="table-responsive">
-                <table class="table table-bordered align-middle">
-                    <thead class="bg-white" style="border-bottom: 2px solid #dee2e6;">
-                        <tr id="headerRow">
-                            <th style="min-width: 180px;" class="text-dark text-center align-middle fw-bold">Alternatif \ Kriteria</th>
-                            <th style="min-width: 80px;" class="text-dark text-center align-middle fw-bold">Kelas<br><small class="fw-normal text-muted">(opsional)</small></th>
-
-                            {% for c in data['criteria'] %}
-                            <th class="position-relative pt-4">
-                                <button type="button" class="btn btn-sm text-danger position-absolute top-0 end-0 p-1" onclick="deleteCriterion(this)"><i class="fa-solid fa-trash-can"></i></button>
-                                <input type="text" name="criteria[]" value="{{ c }}" class="form-control form-control-sm text-center fw-bold mb-1" required>
-                                <select name="types[]" class="form-select form-select-sm mb-1">
-                                    <option value="benefit" {% if data['types'][loop.index0] == 'benefit' %}selected{% endif %}>Benefit</option>
-                                    <option value="cost" {% if data['types'][loop.index0] == 'cost' %}selected{% endif %}>Cost</option>
-                                </select>
-                                <input type="number" name="weights[]" value="{{ data['weights'][loop.index0] }}" step="any" class="form-control form-control-sm text-center" placeholder="Bobot" required>
-                            </th>
-                            {% endfor %}
-                            
-                            <th id="actionHeader" style="width: 80px;" class="text-dark text-center align-middle fw-bold">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody id="matrixBody">
-                        {% for alt in data['alternatives'] %}
-                        {% set row_idx = loop.index0 %}
-                        <tr>
-                            <td>
-                                <input type="text" name="alternatives[]" value="{{ alt }}" class="form-control form-control-sm fw-bold text-center" required>
-                            </td>
-                            <td>
-                                <input type="text" name="groups[]" value="{{ (data.get('groups') or [])[row_idx] if (data.get('groups') or [])|length > row_idx else '' }}" class="form-control form-control-sm text-center">
-                            </td>
-                            {% for c in data['criteria'] %}
-                            <td>
-                                <input type="number" name="perf[]" value="{{ data['performance'][row_idx][loop.index0] }}" step="any" class="form-control form-control-sm text-center" required>
-                            </td>
-                            {% endfor %}
-                            <td class="text-center">
-                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteAlternative(this)"><i class="fa-solid fa-trash"></i></button>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            <div class="text-end mt-3">
-                <button type="submit" class="btn btn-success px-4 shadow-sm"><i class="fa-solid fa-floppy-disk me-1"></i> Simpan Konfigurasi</button>
             </div>
         </div>
-    </form>
+    </div>
+    <div class="col-xl-4">
+        <div class="panel h-100">
+            <div class="panel-head"><h2><i class="fa-solid fa-file-arrow-up me-2 text-primary"></i>Impor / Ekspor</h2></div>
+            <div class="panel-body">
+                <input type="file" name="file" form="uploadForm" class="form-control mb-2" accept=".csv, .xlsx" required>
+                <div class="d-flex gap-2 flex-wrap">
+                    <button type="submit" form="uploadForm" class="btn btn-outline-primary btn-sm"><i class="fa-solid fa-file-import me-1"></i> Impor CSV/Excel</button>
+                    <a href="/project/{{ project.id }}/export" class="btn btn-light btn-sm border"><i class="fa-solid fa-file-export me-1"></i> Ekspor (.xlsx)</a>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<div class="panel">
+    <div class="panel-head">
+        <h2><i class="fa-solid fa-table-cells me-2 text-primary"></i>Matriks Kriteria &amp; Performa</h2>
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-sm btn-outline-primary" onclick="addCriterion()"><i class="fa-solid fa-plus"></i> Kriteria</button>
+            <button type="button" class="btn btn-sm btn-outline-primary" onclick="addAlternative()"><i class="fa-solid fa-plus"></i> Alternatif</button>
+        </div>
+    </div>
+    <div class="panel-body">
+        <div class="table-responsive">
+            <table class="table table-modern align-middle">
+                <thead>
+                    <tr id="headerRow">
+                        <th style="min-width: 165px;" class="align-middle">Alternatif</th>
+                        <th style="min-width: 60px;" class="text-center align-middle">Kelas</th>
+                        {% for c in data['criteria'] %}
+                        <th class="position-relative pt-4" style="min-width: 96px;">
+                            <button type="button" class="btn btn-sm text-danger position-absolute top-0 end-0 p-1" onclick="deleteCriterion(this)"><i class="fa-solid fa-xmark"></i></button>
+                            <input type="text" name="criteria[]" value="{{ c }}" class="form-control form-control-sm text-center fw-bold mb-1" required>
+                            <select name="types[]" class="form-select form-select-sm mb-1">
+                                <option value="benefit" {% if data['types'][loop.index0] == 'benefit' %}selected{% endif %}>Benefit</option>
+                                <option value="cost" {% if data['types'][loop.index0] == 'cost' %}selected{% endif %}>Cost</option>
+                            </select>
+                            <input type="number" name="weights[]" value="{{ data['weights'][loop.index0] }}" step="any" class="form-control form-control-sm text-center" placeholder="Bobot" required>
+                        </th>
+                        {% endfor %}
+                        <th id="actionHeader" style="width: 70px;" class="text-center align-middle">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="matrixBody">
+                    {% for alt in data['alternatives'] %}
+                    {% set row_idx = loop.index0 %}
+                    <tr>
+                        <td><input type="text" name="alternatives[]" value="{{ alt }}" class="form-control form-control-sm fw-semibold" required></td>
+                        <td><input type="text" name="groups[]" value="{{ (data.get('groups') or [])[row_idx] if (data.get('groups') or [])|length > row_idx else '' }}" class="form-control form-control-sm text-center"></td>
+                        {% for c in data['criteria'] %}
+                        <td><input type="number" name="perf[]" value="{{ data['performance'][row_idx][loop.index0] }}" step="any" class="form-control form-control-sm text-center" required></td>
+                        {% endfor %}
+                        <td class="text-center"><button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteAlternative(this)"><i class="fa-solid fa-trash"></i></button></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
+            <span class="text-muted small"><i class="fa-solid fa-circle-info me-1"></i>Benefit: makin besar makin baik · Cost: makin kecil makin baik</span>
+            <button type="submit" class="btn btn-primary px-4"><i class="fa-solid fa-floppy-disk me-1"></i> Simpan Konfigurasi</button>
+        </div>
+    </div>
+</div>
+</form>
+<form action="/project/{{ project.id }}/upload" method="POST" enctype="multipart/form-data" id="uploadForm"></form>
 
 <script>
     function handleWeightMethodChange() {
         const method = document.getElementById('weightMethodSelect').value;
         const inputs = document.getElementsByName('weights[]');
-        
+
         for (let i = 0; i < inputs.length; i++) {
             if (method === 'equal') {
                 inputs[i].value = (100 / inputs.length).toFixed(1);
@@ -163,11 +150,12 @@
     function addCriterion() {
         const headerRow = document.getElementById('headerRow');
         const actionHeader = document.getElementById('actionHeader');
-        
+
         const newTh = document.createElement('th');
         newTh.className = "position-relative pt-4";
+        newTh.style.minWidth = "96px";
         newTh.innerHTML = `
-            <button type="button" class="btn btn-sm text-danger position-absolute top-0 end-0 p-1" onclick="deleteCriterion(this)"><i class="fa-solid fa-trash-can"></i></button>
+            <button type="button" class="btn btn-sm text-danger position-absolute top-0 end-0 p-1" onclick="deleteCriterion(this)"><i class="fa-solid fa-xmark"></i></button>
             <input type="text" name="criteria[]" value="Kriteria Baru" class="form-control form-control-sm text-center fw-bold mb-1" required>
             <select name="types[]" class="form-select form-select-sm mb-1">
                 <option value="benefit">Benefit</option>
@@ -183,7 +171,7 @@
             newTd.innerHTML = '<input type="number" name="perf[]" value="0" step="any" class="form-control form-control-sm text-center" required>';
             row.insertBefore(newTd, row.cells[row.cells.length - 1]);
         }
-        handleWeightMethodChange(); 
+        handleWeightMethodChange();
     }
 
     function addAlternative() {
@@ -192,7 +180,7 @@
         const criteriaCount = headerRow.cells.length - 3; // kolom Alternatif, Kelas, Aksi
 
         const newRow = document.createElement('tr');
-        let htmlContent = `<td><input type="text" name="alternatives[]" value="Alternatif Baru" class="form-control form-control-sm fw-bold text-center" required></td>`;
+        let htmlContent = `<td><input type="text" name="alternatives[]" value="Alternatif Baru" class="form-control form-control-sm fw-semibold" required></td>`;
         htmlContent += `<td><input type="text" name="groups[]" value="" class="form-control form-control-sm text-center"></td>`;
         for (let i = 0; i < criteriaCount; i++) {
             htmlContent += `<td><input type="number" name="perf[]" value="0" step="any" class="form-control form-control-sm text-center" required></td>`;
@@ -205,19 +193,19 @@
     function deleteCriterion(btn) {
         if(confirm("Hapus kriteria ini?")) {
             const th = btn.closest('th');
-            const index = th.cellIndex; 
-            th.remove(); 
+            const index = th.cellIndex;
+            th.remove();
             const tbody = document.getElementById('matrixBody');
             for (let row of tbody.rows) {
-                if (row.cells[index]) row.cells[index].remove(); 
+                if (row.cells[index]) row.cells[index].remove();
             }
-            handleWeightMethodChange(); 
+            handleWeightMethodChange();
         }
     }
 
     function deleteAlternative(btn) {
         if(confirm("Hapus alternatif ini?")) {
-            btn.closest('tr').remove(); 
+            btn.closest('tr').remove();
         }
     }
 </script>

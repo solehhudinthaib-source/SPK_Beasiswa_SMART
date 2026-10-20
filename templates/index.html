@@ -1,66 +1,103 @@
 {% extends 'base.html' %}
+{% set active_page = 'dashboard' %}
+{% block page_title %}Dashboard{% endblock %}
+{% block crumb %}Beranda{% endblock %}
+{% block page_actions %}
+<button class="btn btn-accent" data-bs-toggle="modal" data-bs-target="#newProjectModal">
+    <i class="fa-solid fa-plus me-1"></i> Buat Kasus Baru
+</button>
+{% endblock %}
+
 {% block content %}
-<div class="row align-items-center mb-4">
-    <div class="col-md-6">
-        <h2 class="text-secondary mb-1">🗂️ Manajemen Studi Kasus SPK</h2>
-        <p class="text-muted text-sm">Kelola berbagai studi kasus keputusan metode SMART.</p>
+{% set ns = namespace(alt=0, krit=0) %}
+{% for p in projects %}
+    {% set ns.alt = ns.alt + (p.data_json['alternatives']|length) %}
+    {% set ns.krit = ns.krit + (p.data_json['criteria']|length) %}
+{% endfor %}
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="stat highlight">
+            <div class="ico"><i class="fa-solid fa-folder-tree"></i></div>
+            <div><div class="val">{{ projects|length }}</div><div class="lbl">Studi kasus tersimpan</div></div>
+        </div>
     </div>
-    <div class="col-md-6 text-md-end">
-        <button class="btn btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#newProjectModal">
-            <i class="fa-solid fa-plus me-1"></i> Buat Kasus Baru
-        </button>
+    <div class="col-md-4">
+        <div class="stat">
+            <div class="ico"><i class="fa-solid fa-user-graduate"></i></div>
+            <div><div class="val">{{ ns.alt }}</div><div class="lbl">Total alternatif (siswa)</div></div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat">
+            <div class="ico"><i class="fa-solid fa-list-check"></i></div>
+            <div><div class="val">{{ ns.krit }}</div><div class="lbl">Total kriteria penilaian</div></div>
+        </div>
     </div>
 </div>
 
-<div class="row">
-    {% for p in projects %}
-    <div class="col-md-4 mb-4">
-        <div class="card h-100 p-3">
-            <div class="card-body d-flex flex-column">
-                <h5 class="card-title text-primary"><i class="fa-regular fa-folder-open me-2"></i>{{ p.name }}</h5>
-                <p class="card-text text-muted flex-grow-1">{{ p.description or 'Tidak ada deskripsi.' }}</p>
-                <hr>
-                <div class="d-flex justify-content-between align-items-center">
-                    <a href="/project/{{ p.id }}" class="btn btn-outline-primary btn-sm">Buka Data <i class="fa-solid fa-arrow-right ms-1"></i></a>
-                    <a href="/project/{{ p.id }}/delete" class="text-danger" onclick="return confirm('Hapus proyek ini?')"><i class="fa-solid fa-trash"></i></a>
-                </div>
+<div class="panel">
+    <div class="panel-head">
+        <h2><i class="fa-solid fa-layer-group me-2 text-primary"></i>Daftar Studi Kasus</h2>
+        <span class="text-muted small">Pilih kasus untuk mengisi data atau melihat hasil SMART</span>
+    </div>
+    <div class="panel-body">
+        {% for p in projects %}
+        {% set d = p.data_json %}
+        <div class="d-flex flex-wrap align-items-center gap-3 py-3 {% if not loop.last %}border-bottom{% endif %}">
+            <div class="stat border-0 p-0" style="width:auto; background:none;">
+                <div class="ico"><i class="fa-solid fa-award"></i></div>
+            </div>
+            <div class="flex-grow-1" style="min-width:240px;">
+                <div class="fw-bold fs-6">{{ p.name }}</div>
+                <div class="text-muted small mb-2">{{ p.description or 'Tidak ada deskripsi.' }}</div>
+                <span class="chip"><i class="fa-solid fa-user-graduate"></i> {{ d['alternatives']|length }} alternatif</span>
+                <span class="chip"><i class="fa-solid fa-list-check"></i> {{ d['criteria']|length }} kriteria</span>
+                <span class="chip"><i class="fa-solid fa-scale-balanced"></i> {{ d.get('weight_method', 'direct')|upper }}</span>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="/project/{{ p.id }}" class="btn btn-outline-primary btn-sm"><i class="fa-solid fa-table-cells me-1"></i> Input Data</a>
+                <a href="/project/{{ p.id }}/calculate" class="btn btn-primary btn-sm"><i class="fa-solid fa-chart-column me-1"></i> Lihat Hasil</a>
+                <a href="/project/{{ p.id }}/delete" class="btn btn-sm btn-outline-danger" title="Hapus kasus" onclick="return confirm('Hapus proyek ini?')"><i class="fa-solid fa-trash"></i></a>
             </div>
         </div>
+        {% else %}
+        <div class="text-center py-5 text-muted">
+            <i class="fa-solid fa-inbox fa-3x mb-3"></i><br>Belum ada kasus terdaftar. Klik <strong>Buat Kasus Baru</strong> untuk memulai.
+        </div>
+        {% endfor %}
     </div>
-    {% else %}
-    <div class="col-12 text-center py-5">
-        <div class="text-muted"><i class="fa-solid fa-inbox fa-3x mb-3"></i><br>Belum ada kasus terdaftar. Silakan buat baru!</div>
-    </div>
-    {% endfor %}
 </div>
 
 <div class="modal fade" id="newProjectModal" tabindex="-1">
-    <div class="modal-dialog">
-        <form action="/project/create" method="POST" class="modal-content">
+    <div class="modal-dialog modal-dialog-centered">
+        <form action="/project/create" method="POST" class="modal-content" style="border-radius:16px;">
             <div class="modal-header">
-                <h5 class="modal-title">Tambah Kasus Keputusan Baru</h5>
+                <h5 class="modal-title fw-bold"><i class="fa-solid fa-circle-plus me-2 text-primary"></i>Tambah Kasus Keputusan Baru</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <div class="mb-3">
-                    <label class="form-label">Nama Proyek/Kasus</label>
-                    <input type="text" name="name" class="form-control" placeholder="Contoh: Seleksi Vendor SIAKAD" required>
+                    <label class="form-label fw-semibold">Nama Proyek/Kasus</label>
+                    <input type="text" name="name" class="form-control" placeholder="Contoh: Seleksi Beasiswa 2026" required>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">Deskripsi</label>
-                    <textarea name="description" class="form-control" rows="3"></textarea>
+                    <label class="form-label fw-semibold">Deskripsi</label>
+                    <textarea name="description" class="form-control" rows="3" placeholder="Keterangan singkat studi kasus"></textarea>
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                <button type="submit" class="btn btn-success">Simpan Proyek</button>
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+                <button type="submit" class="btn btn-primary">Simpan Proyek</button>
             </div>
         </form>
     </div>
 </div>
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
-        if (location.hash === '#baru') new bootstrap.Modal('#newProjectModal').show();
-    });
+    function bukaModalBaru() {
+        if (location.hash === '#baru') bootstrap.Modal.getOrCreateInstance('#newProjectModal').show();
+    }
+    document.addEventListener("DOMContentLoaded", bukaModalBaru);
+    window.addEventListener("hashchange", bukaModalBaru);
 </script>
 {% endblock %}
