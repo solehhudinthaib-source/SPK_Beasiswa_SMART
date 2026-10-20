@@ -63,7 +63,7 @@
                                     <td class="fw-bold text-dark">{{ data['alternatives'][idx] }}</td>
                                     {% if winners %}<td class="text-center text-muted">{{ data['groups'][idx] }}</td>{% endif %}
                                     <td class="text-center fw-bold text-primary">
-                                        {{ "%.4f"|format(res['final_scores'][idx]) }}
+                                        {{ "%.3f"|format(res['final_scores'][idx]) }}
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -87,7 +87,7 @@
                             <tr>
                                 <td class="fw-bold">{{ g }}</td>
                                 <td class="text-start">{{ data['alternatives'][i] }}</td>
-                                <td class="fw-bold text-success">{{ "%.4f"|format(res['final_scores'][i]) }}</td>
+                                <td class="fw-bold text-success">{{ "%.3f"|format(res['final_scores'][i]) }}</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -177,7 +177,7 @@
                             <td class="fw-bold text-start ps-3">{{ c }}</td>
                             <td class="text-uppercase fw-medium text-secondary">{{ data['types'][loop.index0] }}</td>
                             <td class="fw-medium">{{ data['weights'][loop.index0] }}</td>
-                            <td class="text-success fw-bold fs-6">{{ "%.4f"|format(res['normalized_weights'][loop.index0]) }}</td>
+                            <td class="text-success fw-bold fs-6">{{ "%.3f"|format(res['normalized_weights'][loop.index0]) }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -213,7 +213,7 @@
                         <tr>
                             <td class="fw-bold text-start ps-3">{{ alt }}</td>
                             {% for c in data['criteria'] %}
-                            <td class="fw-medium text-secondary">{{ "%.4f"|format(res['utility_matrix'][r_idx][loop.index0]) }}</td>
+                            <td class="fw-medium text-secondary">{{ "%.3f"|format(res['utility_matrix'][r_idx][loop.index0]) }}</td>
                             {% endfor %}
                         </tr>
                         {% endfor %}
@@ -242,9 +242,9 @@
                         <tr>
                             <td class="fw-bold text-start ps-3">{{ alt }}</td>
                             {% for c in data['criteria'] %}
-                            <td class="fw-medium text-secondary">{{ "%.4f"|format(res['aggregation_matrix'][r_idx][loop.index0]) }}</td>
+                            <td class="fw-medium text-secondary">{{ "%.3f"|format(res['aggregation_matrix'][r_idx][loop.index0]) }}</td>
                             {% endfor %}
-                            <td class="table-success fw-bold text-success fs-5 border-success">{{ "%.4f"|format(res['final_scores'][r_idx]) }}</td>
+                            <td class="table-success fw-bold text-success fs-5 border-success">{{ "%.3f"|format(res['final_scores'][r_idx]) }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
